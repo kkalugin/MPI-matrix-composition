@@ -102,10 +102,11 @@ int main(int argc, char *argv[]){
     MPI_Reduce(tempC, C, Csize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(rank==0){
+		ptrC = C;
         printf("\nMatrix C is:\n");
         for(int i = 0; i < A_size1; i++){
             for(int j = 0; j < B_size2; j++)
-                printf("%d\t", C[i * B_size2 + j]);				
+                printf("%d\t", *ptrC++);				
             printf("\n");
         }
         delete []B;
