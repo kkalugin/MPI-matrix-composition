@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     int rank, size;
     int A_size1 = 100, A_size2 = 15, B_size1 = 15, B_size2 = 7;
     int Asize, Bsize, Csize;
-    int Bdispls, Brow, Bcolumn;
+    int Bdispls;
     int msgsize;
 	int num1, num2;
 	int start, end;
@@ -60,8 +60,7 @@ int main(int argc, char *argv[]){
             displs[i] = i * msgsize;
         }
         sendcount[size-1] = Bsize - (size - 1) * msgsize;
-        displs[size-1] = (size - 1) * msgsize;
-		
+        displs[size-1] = (size - 1) * msgsize;		
 	}
 	
 	
@@ -76,35 +75,29 @@ int main(int argc, char *argv[]){
     MPI_Scatterv(B, sendcount, displs, MPI_INT, tempB, Bsize, MPI_INT, 0, MPI_COMM_WORLD);
 	
 	ptrB = tempB;	
-	num1 = (Bdispls + Bsize) / B_size1 - Bdispls  / B_size1;
+	num1 = (Bdispls + Bsize - 1) / B_size1 - Bdispls  / B_size1;
 	start = Bdispls  % B_size1;	
 	
 	for(int i = 0; i <= num1; i++){
 		if(i != num1)
 			end = B_size1 - 1;
 		else
-			end = (Bdispls + Bsize) % B_size1;
+			end = (Bdispls + Bsize - 1) % B_size1;
 		
-		Brow = Bdispls  / B_size1 + i;
+		ptrC = tempC + Bdispls  / B_size1 + i;
+		ptrA = A + start;	
 		
-		num2 = end - start;
-		
-		for(int j = 0; j < A_size1; j++){
-			ptrA = A + j * A_size2 + start;
-			ptrC = tempC + j * B_size2 + Brow;
-			
+		num2 = end - start;		
+		for(int j = 0; j < A_size1; j++){						
 			for(int k = 0; k <= num2; k++, ptrA++, ptrB++)
-				*ptrC +=  *ptrA * *ptrB;
-			
-			ptrB -= (num2+1);
-			
-				
+				*ptrC +=  *ptrA * *ptrB;			
+			ptrB -= num2+1;
+			ptrA += A_size2 - num2 - 1;
+			ptrC += B_size2;			
 		}
-		ptrB += (num2+1);
-		
+		ptrB += num2+1;		
 		start = 0;
 	}
-	
 	
     MPI_Reduce(tempC, C, Csize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -114,12 +107,12 @@ int main(int argc, char *argv[]){
             for(int j = 0; j < B_size2; j++)
                 printf("%d\t", C[i * B_size2 + j]);				
             printf("\n");
-        }		
+        }
         delete []B;
         delete []C;
         delete []sendcount;
         delete []displs;		
-    }    
+    }
     delete []A;
     delete []tempB;
     delete []tempC;	
