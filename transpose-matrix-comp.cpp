@@ -41,18 +41,22 @@ int main(int argc, char *argv[]){
         C = new int [Csize];
         sendcount = new int [size];
         displs = new int [size];
-
+		
+		ptrA = A;
         for(int i = 0; i < A_size1; i++)
             for(int j = 0; j < A_size2; j++)
-                A[i * A_size2 + j] = i + j;
+                *ptrA++ = i + j;
 
+		ptrB = B;
         for(int i = 0; i < B_size2; i++)
             for(int j = 0; j < B_size1; j++)
-                B[i * B_size1 + j] = i * j;
+                *ptrB++ = i * j;
 
+		ptrA = tempC;
+		ptrB = C;
         for(int i = 0; i < Csize; i++){
-            tempC[i] = 0;
-            C[i] = 0;
+            *ptrA++ = 0;
+            *ptrB++ = 0;
         }        
 
         for(int i = 0; i < size - 1; i++){
